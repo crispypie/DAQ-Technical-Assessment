@@ -1,3 +1,6 @@
 [submodule "external/dbcppp"]
 	path = external/dbcppp
 	url = https://github.com/xR3b0rn/dbcppp
+[submodule "firmware/external/dbcppp"]
+	path = firmware/external/dbcppp
+	url = https://github.com/xR3b0rn/dbcppp
