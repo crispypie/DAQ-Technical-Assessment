@@ -5,9 +5,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y python3-pip \
+    apt-get install -y python3-pip libxml2-dev \
     wget autoconf libtool git make g++ valgrind \
-    cmake can-utils
+    cmake can-utils \
+    libboost-all-dev
 
 COPY . .
 
