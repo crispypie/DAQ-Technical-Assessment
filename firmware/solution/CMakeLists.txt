@@ -6,6 +6,9 @@ project(solution)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add dbcppp as a subdirectory
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/dbcppp ${CMAKE_BINARY_DIR}/dbcppp)
+
 # Executable
 add_executable(answer main.cpp)
 
