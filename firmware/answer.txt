@@ -1,8 +1,21 @@
 Use this file to write your answer to Stage 2 of the firmware tasks.
 
 CAN
-Q1:
+Q1: 
+    Primary advantages - reliable, low-cost, supports real-time communication, low power
+    Primary disadvantages - limited bandwidth and data payloads
+
+    USB and PCIe are more advantageous for bulk/high-speed data. SPI works better
+    in short range applications with a focus on extreme speed.
 
 Q2:
+    For the above mentioned reasons and likely largely due to cost (being a student 
+    led team with limited funding) and widespread adoption in the automotive industry 
+    making troubleshooting easier.
 
 STM32 Chip Selection
+
+STM32F765BI (High-performance and DSP with FPU, Arm Cortex-M7 MCU with 2 
+Mbytes of Flash memory, 216 MHz CPU, Art Accelerator, L1 cache, SDRAM, DFSDM)
+
+This chip meets the desired requirements. No available chip exceeded them.
