@@ -18,4 +18,7 @@ STM32 Chip Selection
 STM32F765BI (High-performance and DSP with FPU, Arm Cortex-M7 MCU with 2 
 Mbytes of Flash memory, 216 MHz CPU, Art Accelerator, L1 cache, SDRAM, DFSDM)
 
-This chip meets the desired requirements. No available chip exceeded them.
+It does slightly exceed the requirements. It has a thirteenth 16-bit timer (low power
+available in stop mode). Power requirements are 1.7 - 3.6V. Physical dimensions appear
+to be based on variations from 14x14mm to 28x28mm. They appear to be around 12 USD when
+purchased individually.
