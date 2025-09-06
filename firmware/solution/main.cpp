@@ -1,8 +1,118 @@
-
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <memory>
+#include <dbcppp/Network.h> // correct dbcppp include
 
-int main()
-{   
-    std::cout << "Hello World!" << std::endl;
+struct CanMessage {
+    double timestamp;
+    std::string interface;
+    uint32_t can_id;
+    std::vector<uint8_t> data;
+};
+
+// Parse dump.log
+std::vector<CanMessage> parse_dump_log(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << "\n";
+        exit(1);
+    }
+
+    std::vector<CanMessage> messages;
+    std::string line;
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        CanMessage msg;
+
+        // Extract timestamp
+        size_t ts_end = line.find(')');
+        msg.timestamp = std::stod(line.substr(1, ts_end - 1));
+
+        // Extract interface
+        size_t iface_start = line.find_first_not_of(" ", ts_end + 1);
+        size_t iface_end = line.find_first_of(" ", iface_start);
+        msg.interface = line.substr(iface_start, iface_end - iface_start);
+
+        // Extract CAN ID
+        size_t hash_pos = line.find('#', iface_end);
+        std::string hex_id = line.substr(iface_end + 1, hash_pos - iface_end - 1);
+        msg.can_id = std::stoul(hex_id, nullptr, 16);
+
+        // Extract data payload
+        std::string payload = line.substr(hash_pos + 1);
+        msg.data.clear();
+        for (size_t i = 0; i < payload.size(); i += 2) {
+            msg.data.push_back(static_cast<uint8_t>(std::stoul(payload.substr(i, 2), nullptr, 16)));
+        }
+
+        messages.push_back(msg);
+    }
+
+    return messages;
+}
+
+int main() {
+    // Parse dump.log
+    auto messages = parse_dump_log("dump.log");
+
+    // Load DBC files
+    std::ifstream controlFile("ControlBus.dbc");
+    auto controlDBC = dbcppp::INetwork::LoadDBCFromIs(controlFile);
+
+    std::ifstream sensorFile("SensorBus.dbc");
+    auto sensorDBC = dbcppp::INetwork::LoadDBCFromIs(sensorFile);
+
+    std::ifstream tractiveFile("TractiveBus.dbc");
+    auto tractiveDBC = dbcppp::INetwork::LoadDBCFromIs(tractiveFile);
+
+
+    std::unordered_map<std::string, dbcppp::INetwork*> dbc_map = {
+        {"vcan0", controlDBC.get()},
+        {"vcan1", sensorDBC.get()},
+        {"vcan2", tractiveDBC.get()}
+    };
+
+    std::ofstream outfile("output.txt");
+    if (!outfile.is_open()) {
+        std::cerr << "Error creating output.txt\n";
+        return 1;
+    }
+
+    for (const auto& msg : messages) {
+        auto it = dbc_map.find(msg.interface);
+        if (it == dbc_map.end()) continue;
+
+        dbcppp::INetwork* dbc = it->second;
+
+        // Find matching message by CAN ID
+        const dbcppp::IMessage* frame = nullptr;
+        for (const auto& f : dbc->Messages()) {
+            if (f.Id() == msg.can_id) {
+                frame = &f;
+                break;
+            }
+        }
+        if (!frame) continue;
+
+        // Decode signals
+        for (const auto& signal : frame->Signals()) {
+            // Decode raw bytes into physical value
+            auto raw = signal.Decode(msg.data.data());
+            double value = signal.RawToPhys(raw);
+
+            outfile << "(" << msg.timestamp << "): "
+                    << signal.Name() << ": "
+                    << value << "\n";
+        }
+    }
+
+    outfile.close();
+    std::cout << "Stage 1 complete: output.txt generated.\n";
     return 0;
 }

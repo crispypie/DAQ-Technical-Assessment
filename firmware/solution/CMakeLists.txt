@@ -11,6 +11,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/dbcppp ${CMAKE_BINARY_DIR}/dbcppp)
 
 # Executable
 add_executable(answer main.cpp)
+target_include_directories(answer PRIVATE ${CMAKE_SOURCE_DIR}/external/dbcppp/src)
 
 target_link_libraries(answer PRIVATE dbcppp)
 
